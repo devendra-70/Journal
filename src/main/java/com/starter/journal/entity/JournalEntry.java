@@ -1,9 +1,6 @@
 package com.starter.journal.entity;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.bson.types.ObjectId;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.data.annotation.Id;
@@ -17,6 +14,8 @@ import java.util.Date;
 public class JournalEntry {
     @Id
     private ObjectId id;
+
+    @NonNull
     private String title;
     private String content;
     private LocalDateTime date;
