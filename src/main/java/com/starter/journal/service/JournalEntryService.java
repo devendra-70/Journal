@@ -37,8 +37,8 @@ public class JournalEntryService {
         JournalEntry current = journalEntryRepository.findById(id).orElse(null);
         if(current!=null){
             current.setDate(LocalDateTime.now());
-            current.setContent(newEntry.getContent()!=null && newEntry.getContent().equals("") ? newEntry.getContent():current.getContent());
-            current.setTitle(newEntry.getTitle() != null && newEntry.getTitle().equals("")? newEntry.getTitle() : current.getTitle());
+            current.setContent(newEntry.getContent()!=null && !newEntry.getContent().equals("") ? newEntry.getContent():current.getContent());
+            current.setTitle(newEntry.getTitle() != null && !newEntry.getTitle().equals("")? newEntry.getTitle() : current.getTitle());
         }
 
         return journalEntryRepository.save(current);
