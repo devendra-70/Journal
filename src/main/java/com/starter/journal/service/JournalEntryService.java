@@ -32,7 +32,7 @@ public class JournalEntryService {
             return saved;
         }catch (Exception e){
             System.out.println(e);
-            return null;
+            throw new RuntimeException("Error occured saving the entry",e);
         }
     }
 
@@ -47,20 +47,29 @@ public class JournalEntryService {
 
     @Transactional
     public void deleteById(String userName,ObjectId id){
-        User user = userService.findByUserName(userName);
-        journalEntryRepository.deleteById(id);
-        user.getUserEntries().removeIf(x->x.getId().equals(id));
-        userService.saveUser(user);
+        try {
+            User user = userService.findByUserName(userName);
+            journalEntryRepository.deleteById(id);
+            user.getUserEntries().removeIf(x -> x.getId().equals(id));
+            userService.saveUser(user);
+        }catch (Exception e){
+            throw new RuntimeException("Error occured during delete",e);
+        }
     }
 
     @Transactional
     public JournalEntry updateById(String userName,ObjectId id,JournalEntry newEntry){
-        JournalEntry current = journalEntryRepository.findById(id).orElse(null);
-        if(current!=null){
-            current.setDate(LocalDateTime.now());
-            current.setContent(newEntry.getContent()!=null && !newEntry.getContent().equals("") ? newEntry.getContent():current.getContent());
-            current.setTitle(newEntry.getTitle() != null && !newEntry.getTitle().equals("")? newEntry.getTitle() : current.getTitle());
-        }return journalEntryRepository.save(current);
+        try {
+            JournalEntry current = journalEntryRepository.findById(id).orElse(null);
+            if (current != null) {
+                current.setDate(LocalDateTime.now());
+                current.setContent(newEntry.getContent() != null && !newEntry.getContent().equals("") ? newEntry.getContent() : current.getContent());
+                current.setTitle(newEntry.getTitle() != null && !newEntry.getTitle().equals("") ? newEntry.getTitle() : current.getTitle());
+            }
+            return journalEntryRepository.save(current);
+        }catch(Exception e){
+            throw new RuntimeException("Error occured during update",e);
+        }
 
     }
 }
