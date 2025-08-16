@@ -6,6 +6,7 @@ import com.starter.journal.repository.JournalEntryRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,23 +21,31 @@ public class JournalEntryService {
     @Autowired
     private UserService userService;
 
+    @Transactional
     public JournalEntry saveEntry(JournalEntry journalEntry, String userName){
-        User user = userService.findByUserName(userName);
-        journalEntry.setDate(LocalDateTime.now());
-        JournalEntry saved = journalEntryRepository.save(journalEntry);
-        user.getUserEntries().add(saved);
-        userService.saveUser(user);
-        return saved;
+        try {
+            User user = userService.findByUserName(userName);
+            journalEntry.setDate(LocalDateTime.now());
+            JournalEntry saved = journalEntryRepository.save(journalEntry);
+            user.getUserEntries().add(saved);
+            userService.saveUser(user);
+            return saved;
+        }catch (Exception e){
+            System.out.println(e);
+            return null;
+        }
     }
 
     public List<JournalEntry> getAll(){
         return journalEntryRepository.findAll();
     }
 
+
     public Optional<JournalEntry> getById(ObjectId id){
         return journalEntryRepository.findById(id);
     }
 
+    @Transactional
     public void deleteById(String userName,ObjectId id){
         User user = userService.findByUserName(userName);
         journalEntryRepository.deleteById(id);
@@ -44,6 +53,7 @@ public class JournalEntryService {
         userService.saveUser(user);
     }
 
+    @Transactional
     public JournalEntry updateById(String userName,ObjectId id,JournalEntry newEntry){
         JournalEntry current = journalEntryRepository.findById(id).orElse(null);
         if(current!=null){
