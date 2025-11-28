@@ -46,30 +46,43 @@ public class JournalEntryService {
     }
 
     @Transactional
-    public void deleteById(String userName,ObjectId id){
+    public boolean deleteById(String userName,ObjectId id){
+        boolean remove=false;
         try {
             User user = userService.findByUserName(userName);
             journalEntryRepository.deleteById(id);
-            user.getUserEntries().removeIf(x -> x.getId().equals(id));
-            userService.saveUser(user);
+            remove=user.getUserEntries().removeIf(x -> x.getId().equals(id));
+            if(remove){
+                userService.saveUser(user);
+                journalEntryRepository.deleteById(id);
+            }
         }catch (Exception e){
             throw new RuntimeException("Error occured during delete",e);
         }
+        return remove;
     }
 
     @Transactional
-    public JournalEntry updateById(String userName,ObjectId id,JournalEntry newEntry){
-        try {
-            JournalEntry current = journalEntryRepository.findById(id).orElse(null);
-            if (current != null) {
-                current.setDate(LocalDateTime.now());
-                current.setContent(newEntry.getContent() != null && !newEntry.getContent().equals("") ? newEntry.getContent() : current.getContent());
-                current.setTitle(newEntry.getTitle() != null && !newEntry.getTitle().equals("") ? newEntry.getTitle() : current.getTitle());
+    public JournalEntry updateEntry(String userName, ObjectId id, JournalEntry newEntry) {
+        User user = userService.findByUserName(userName);
+        boolean exists = user.getUserEntries().stream()
+                .anyMatch(entry -> entry.getId().equals(id));
+        if (exists) {
+            JournalEntry oldEntry = journalEntryRepository.findById(id).orElse(null);
+            if (oldEntry != null) {
+                String newTitle = newEntry.getTitle();
+                String newContent = newEntry.getContent();
+                if (newTitle != null && !newTitle.isEmpty()) {
+                    oldEntry.setTitle(newTitle);
+                }
+                if (newContent != null && !newContent.isEmpty()) {
+                    oldEntry.setContent(newContent);
+                }
+                journalEntryRepository.save(oldEntry);
+                return oldEntry;
             }
-            return journalEntryRepository.save(current);
-        }catch(Exception e){
-            throw new RuntimeException("Error occured during update",e);
         }
-
+        return null;
     }
+
 }
